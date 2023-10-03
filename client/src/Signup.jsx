@@ -1,15 +1,82 @@
 import Button from '@mui/material/Button';
 import TextField from "@mui/material/TextField";
 import {Card, Typography} from "@mui/material";
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { RecoilRoot, useRecoilState, useSetRecoilState } from 'recoil';
+import { emailState, passwordState } from './RecoilAtoms/atomStates';
 
-function Signup() {
+function SignUpBut () {
 
-  const [email , setEmail] = useState('')
-  const [password , setPassword] = useState(null);
-  const navigate = useNavigate()
-  return <div> 
+  const [email] = useRecoilState(emailState);
+  const [password] = useRecoilState(passwordState);
+  const navigate = useNavigate();
+  return (
+    <RecoilRoot>
+      <Button 
+        size={"large"} 
+        variant="contained"
+        onClick={() =>{
+          function callback2(data) {
+            localStorage.setItem("token" , "Bearer " +  data.token)
+            navigate(`/todo/${email}`)
+            window.location.reload();
+          }
+          function callback1(res) {
+            res.json().then(callback2)
+          }
+          fetch("http://localhost:3001/signup", {
+            method: "POST",
+            body : JSON.stringify({
+              username : email,
+              password: password
+            }),
+            headers: {
+              "Content-type": "application/json",
+            }
+          })
+            .then(callback1)
+        }}
+      >Signup 
+      </Button>
+    </RecoilRoot>
+  )
+}
+
+function EnterEmail () {
+  const setEmail = useSetRecoilState(emailState)
+  return (
+    <RecoilRoot>
+      <TextField fullWidth={true} id="outlined-basic"label="Email"variant="outlined"
+        onChange={(e) => {
+          setEmail(e.target.value);
+        }}
+      />
+    </RecoilRoot>
+  )
+}
+
+
+function EnterPassword () {
+  const setPassword = useSetRecoilState(passwordState)
+  return (
+    <RecoilRoot>
+      <TextField
+        fullWidth={true}
+        id="outlined-basic"
+        label="Password"
+        variant="outlined"
+        type={"password"}
+        onChange={(e) =>{
+          setPassword(e.target.value);
+        }}
+      />
+    </RecoilRoot>
+  )
+}
+
+export default function Signup() {
+
+  return <RecoilRoot> 
     <div style={{
       paddingTop: 150,
       marginBottom: 10,
@@ -21,55 +88,15 @@ function Signup() {
       </Typography>
     </div>
     <div style={{display: "flex", justifyContent: "center"}}>
-      <Card varint={"outlined"} style={{width: 400, padding: 20}}>
-        <TextField fullWidth={true} id="outlined-basic"label="Email"variant="outlined"
-          onChange={(e) => {
-            setEmail(e.target.value);
-          }}
-        />
+      <Card variant={"outlined"} style={{width: 400, padding: 20}}>
+        <EnterEmail />
         <br/><br/>
-        <TextField
-          fullWidth={true}
-          id="outlined-basic"
-          label="Password"
-          variant="outlined"
-          type={"password"}
-          onChange={(e) =>{
-            setPassword(e.target.value);
-          }}
-        />
-
+        <EnterPassword /> 
         <br/><br/>
-        <Button 
-          size={"large"} 
-          variant="contained"
-          onClick={() =>{
-            function callback2(data) {
-              localStorage.setItem("token" ,  data.token)
-              navigate(`/todo/${email}`)
-              window.location.reload()
-            }
-            function callback1(res) {
-              res.json().then(callback2)
-            }
-            fetch("http://localhost:3001/signup", {
-              method: "POST",
-              body : JSON.stringify({
-                username : email,
-                password: password
-              }),
-              headers: {
-                "Content-type": "application/json",
-              }
-            })
-              .then(callback1)
-          }}
-        >Signup 
-        </Button>
+        <SignUpBut />
       </Card>
     </div>
-  </div>
+  </RecoilRoot>
 }
-export default Signup;
 
 
