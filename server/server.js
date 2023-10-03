@@ -1,7 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
-const fs = require("fs");
 const cors = require("cors");
 const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose');
@@ -30,13 +29,16 @@ mongoose.connect('mongodb://localhost:27017/Todo' )
 
 const authenticateJWT = (req, res, next) => {
   const authHeader = req.headers.authorization;
-  if(authHeader){
+  console.log(req.headers.success);
+  console.log(authHeader);
+  const token = authHeader.split(' ')[1];
+  if(token){
     // Verify Token
-    const token = authHeader;
     jwt.verify(token, secret, (err, user) =>{
       if(err){
-        return res.sendStatus(403);
+        return res.status(403).json({msg : 'Token has been manipulated'});
       }
+      console.log('token is verified')
       req.user = user
       next();
     });
@@ -47,12 +49,18 @@ const authenticateJWT = (req, res, next) => {
   }
 }
 
-app.get('/profile' , authenticateJWT , (req, res) =>{
-  res.json({
-    username : req.user.username
-  })
-})
+app.get('/profile' , authenticateJWT ,  (req, res) =>{
+  const user =  req.user
+  console.log(req.user)
+  res.status(200).json({msg : `Hello ${user.username} You have access to this protected route`,
+  username : user.username
+  });
+});
 
+
+app.use('/todo/:username', authenticateJWT , () =>{
+  console.log('App.use middleware got accessed')
+});
 
 app.post('/signup' , async  (req, res) =>{
   const { username, password } = req.body;
@@ -63,29 +71,12 @@ app.post('/signup' , async  (req, res) =>{
   else{
     const newUser = new User({username , password});
     await newUser.save();
-
     const token = jwt.sign({ username: newUser.username, id: newUser.id }, secret);
     res.status(201).json({msg : 'success' ,  token });
   }
 });
 
-const verifyToken = (req, res, next) => {
-  const token = req.headers.authorization;
-  console.log('control reaches here and we are fine');
-  if (!token) {
-    return res.status(401).json({ error: 'Unauthorized: No token provided' });
-  }
 
-  jwt.verify(token, secret, (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ error: 'Unauthorized: Invalid token' });
-    }
-
-    req.user = decoded;
-    next();
-  });
-};
-app.use('/todo/:username', verifyToken);
 
 app.post('/signin' , async (req, res) =>{
   const { username, password } = req.body;
@@ -100,32 +91,24 @@ app.post('/signin' , async (req, res) =>{
 })
 
 
-app.put('/saveTodo' ,  (req, res) =>{
+app.put('/saveTodo' , authenticateJWT ,  async (req, res) =>{
+  // console.log(user.username);
   const {username , todoTitle , todoDes } = req.body;
-  fs.readFile('database.json'  , 'utf8' , (err, data) =>{
-    if(err) throw err;
-    const users = JSON.parse(data);
-
-    const user = users.find(u => u.username === username);
-
-    if(!user){
-      return res.status(401).json({error : "Inavlid Username"});
-    }
+  try {
+    const user = await User.findOne({username});
+    console.log('control reaches here ')
+    // if(!user){
+    //   return res.status(400).json({msg : 'User does not exist'});
+    // }
     const newTodo = {title : todoTitle , description : todoDes};
-    console.log('control reaches here and everything is fine')
-    const updatedUsers = users.map((usr) =>{
-      if(usr.username === username){
-        
-        console.log(usr) 
-      }
-    }) 
-    console.log(updatedUsers);
-    res.json({msg : user}).status(201); 
-    //   fs.writeFile("database.json", JSON.stringify(updatedUsers), (err) => {
-    //     if (err) throw err;
-    //     res.status(201).json({msg : 'success'});
-    //   });
-  });
+
+    await user.updateOne({$push : {Todo : newTodo}});
+
+    return res.json({msg : "Todo added successfully"});
+  }catch(err){
+    console.log(err);
+    return res.status(500).json({msg : "Internal server error my boi"});
+  }
 });
 
 
