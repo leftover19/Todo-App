@@ -2,7 +2,7 @@ import {Typography} from "@mui/material";
 import Button from "@mui/material/Button";
 import { useEffect, useState } from "react";
 import {useNavigate} from "react-router-dom";
-
+import axios from 'axios';
 export default function Appbar() {
   const navigate = useNavigate()
   const [userEmail , setUserEmail] = useState('');
@@ -16,8 +16,7 @@ export default function Appbar() {
     function callback1(res) {
       res.json().then(callback2);
     }
-    fetch("http://localhost:3001/profile", {
-      method:"GET", 
+    axios.get("http://localhost:3001/profile" || 'http://54.196.215.241:3001/profile', {
       headers :{
         "Authorization" :localStorage.getItem("token"),
         'Success' : true

@@ -3,6 +3,7 @@ import { Button, Card, TextField, Typography } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { RecoilRoot, useRecoilState, useSetRecoilState } from 'recoil';
 import { desState, titleState, todoState } from './RecoilAtoms/atomStates';
+import axios from 'axios'
 export default function Todo () {
 const {username} = useParams();
 // const [todoTitle, setTodoTitle] = useState('');
@@ -50,8 +51,7 @@ const {username} = useParams();
           function callback1(res){
             res.json({msg : 'send save todo data'}).then(callback2);
           }
-          fetch('http://localhost:3001/saveTodo' , {
-            method: 'PUT',
+          axios.put('http://54.196.215.241:3001/saveTodo' || 'http://localhost:3001/saveTodo' , {
             headers : {
               'Authorization' :  localStorage.getItem("token"),
               'Content-Type' : 'application/json'

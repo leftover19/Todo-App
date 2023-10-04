@@ -4,6 +4,7 @@ import {Card, Typography} from "@mui/material";
 import { useNavigate } from 'react-router-dom';
 import { RecoilRoot, useRecoilState, useSetRecoilState } from 'recoil';
 import { emailState, passwordState } from './RecoilAtoms/atomStates';
+import axios from 'axios';
 
 function SignUpBut () {
 
@@ -24,8 +25,7 @@ function SignUpBut () {
           function callback1(res) {
             res.json().then(callback2)
           }
-          fetch("http://localhost:3001/signup", {
-            method: "POST",
+          axios.post('http://54.196.215.241:3001/signup' || "http://localhost:3001/signup", {
             body : JSON.stringify({
               username : email,
               password: password
