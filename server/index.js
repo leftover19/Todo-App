@@ -4,7 +4,7 @@ const app = express();
 const cors = require("cors");
 const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose');
-
+const path =  require('path')
 app.use(bodyParser.json());
 app.use(cors());
 const port = 3001;
@@ -44,6 +44,11 @@ const authenticateJWT = (req, res, next) => {
     res.status(401);
   }
 }
+
+app.get('/' , (req, res) =>{
+  res.sendFile(path.join(__dirname + '/index.html'))
+}) ;
+
 
 app.get('/profile' , authenticateJWT ,  (req, res) =>{
   const user =  req.user
