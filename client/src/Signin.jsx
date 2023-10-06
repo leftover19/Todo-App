@@ -23,7 +23,6 @@ function SignInButt() {
                             password,
                         });
                         const data = await response.json();
-
                         localStorage.setItem("token", "Bearer " + data.body.token);
                         navigate(`/todo/${email}`);
                         window.location.reload();
